@@ -12,6 +12,13 @@ export class DiscordService {
   private readonly logger = new Logger(DiscordService.name);
   private readonly token: string;
 
+  /**
+   * Initializes the Discord client with the necessary intents and sets the Discord bot token.
+   *
+   * This constructor is responsible for setting up the Discord client with the required intents (Guilds, GuildMessages, and MessageContent) and storing the Discord bot token from the environment variable `DISCORD_BOT_TOKEN`. It also logs a message to the logger indicating that the DiscordService has been initialized with the provided token.
+   *
+   * @param geminiService - An instance of the GeminiService, which is used for processing prompts.
+   */
   constructor(private readonly geminiService: GeminiService) {
     this.client = new Client({
       intents: [
@@ -24,6 +31,11 @@ export class DiscordService {
     this.logger.log(`DiscordService initialized with token: ${this.token}`);
   }
 
+  /**
+   * Initializes the Discord client, logs in the client, and sets up event handlers for handling logged-in client and message creation events.
+   *
+   * This method is called when the DiscordService module is initialized. It first sets up the event handlers for the logged-in client and message creation events, and then logs in the Discord client using the provided token.
+   */
   async onModuleInit() {
     this.handleLoggedInDiscordClient();
     this.handleCreateDiscordMessage();
@@ -44,11 +56,11 @@ export class DiscordService {
   }
   
   /**
-   * Handles the creation of a Discord message and processes any prompts contained within.
+   * Handles the creation of Discord messages and processing of commands.
    *
-   * When a message is received, this function checks if the message is from a bot and returns if so. If the message starts with '!prompt', it extracts the prompt from the message content, logs it, and sends a response back to the message channel.
+   * This method listens for 'messageCreate' events from the Discord client and processes any messages that start with the '!prompt' command. It calls the `handlePrompt` method to process the prompt and send the response back to the message channel.
    *
-   * @param message - The Discord message that was created.
+   * If the message does not start with '!prompt', it logs an error message to the logger.
    */
   handleCreateDiscordMessage(): void {
     this.client.on('messageCreate', async (message: Message) => {
@@ -63,11 +75,13 @@ export class DiscordService {
   }
 
   /**
-   * Handles a prompt received from a Discord message and returns a response.
+   * Handles the processing of a prompt received from a Discord message.
    *
-   * @param messageContent - The full content of the Discord message that contained the prompt.
-   * @param prompt - The prompt extracted from the Discord message.
-   * @returns A string response to the prompt.
+   * When a message is received that starts with '!prompt', this function extracts the prompt from the message content, sends it to the GeminiService, and sends the response back to the message channel. If the response is too long, it sends a message indicating that the response is too long to send. If the response is empty, it sends a message indicating that the response is empty.
+   *
+   * @param discordMessage - The Discord message that was received.
+   * @param command - The command that was used in the message (e.g. '!prompt').
+   * @returns - A Promise that resolves when the prompt has been processed.
    */
   async handlePrompt(discordMessage: Message, command: string): Promise<void> {
     if (command === '!prompt') {
