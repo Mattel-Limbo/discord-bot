@@ -10,13 +10,11 @@ export class GeminiService {
     }
 
     async sendToGemini(prompt: string): Promise<string> {
-        // Choose a model that's appropriate for your use case.
         const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
-        console.log(text);
 
         return text;
     }
