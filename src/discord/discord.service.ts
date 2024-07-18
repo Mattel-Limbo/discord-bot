@@ -1,6 +1,9 @@
 // discord.service.ts
 import { Injectable, Logger } from '@nestjs/common';
+import axios from 'axios';
 import { Client, Message, GatewayIntentBits, DiscordAPIError } from 'discord.js';
+import { title } from 'process';
+import { timestamp } from 'rxjs';
 import { GeminiService } from 'src/gemini/gemini.service';
 
 @Injectable()
@@ -81,8 +84,20 @@ export class DiscordService {
         discordMessage.channel.send('Sorry, the response is empty.');
         return;
       }
+      console.log(response);
 
       discordMessage.channel.send(response);
+      axios.post(process.env.DISCORD_WEBHOOK_URL, {
+        title: prompt,
+        description: response,
+        timestamp: new Date(discordMessage.createdTimestamp).toISOString(),
+        username: discordMessage.author.displayName,
+        avatar: discordMessage.author.avatarURL(),
+      }).then((response) => {
+        // console.log(response.data);
+      }).catch((error) => {
+        console.log(error);
+      });
     }
   }
 }
